@@ -6,3 +6,56 @@ body {
   margin: 0;
   background-color: #f8fafc;
 }
+
+/* Animación de entrada para notificaciones y nuevos logs */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out both;
+}
+
+/* Toast: entrada y salida */
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes toast-exit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+.toast-enter {
+  animation: toast-enter 0.2s ease-out both;
+}
+
+.toast-exit {
+  animation: toast-exit 0.18s ease-in both;
+}
+
+/* Barra de progreso del toast */
+@keyframes progress-shrink {
+  from { width: 100%; }
+  to   { width: 0%; }
+}

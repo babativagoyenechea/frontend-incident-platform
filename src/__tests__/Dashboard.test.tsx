@@ -293,6 +293,8 @@ describe('EventForm — Formulario de registro de eventos', () => {
     setError:        vi.fn(),
     setLoading:      vi.fn(),
     addLog:          vi.fn(),
+    onSuccess:       vi.fn(),
+    onEventCreated:  vi.fn(),
   };
 
   beforeEach(() => {
@@ -364,6 +366,9 @@ describe('IncidentForm — Formulario de incidentes', () => {
     addIncidentLocal: vi.fn(),
     fetchMetrics:     vi.fn(),
     fetchIncidents:   vi.fn(),
+    onSuccess:        vi.fn(),
+    prefilledFromEvent: false,
+    onDismissPrefilled: vi.fn(),
   };
 
   beforeEach(() => {
