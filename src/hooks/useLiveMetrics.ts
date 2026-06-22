@@ -1,4 +1,4 @@
-import { useEffect, useContext, useCallback, useState } from 'react';
+import { useEffect, useContext, useCallback, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import type { Socket } from 'socket.io-client';
 import { DashboardContext } from '../context/DashboardContext';
@@ -12,6 +12,10 @@ export function useLiveMetrics() {
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   const [debouncedApp, setDebouncedApp] = useState(state.filters.application);
+
+  // ── Ref para guardar el socket: no dispara re-renders y sobrevive al
+  //    doble montaje de React.StrictMode en desarrollo ──────────────────
+  const socketRef = useRef<Socket | null>(null);
 
   const fetchMetrics = useCallback(() => {
     dispatch({ type: 'SET_LOADING', payload: true });
@@ -31,10 +35,17 @@ export function useLiveMetrics() {
       });
   }, [dispatch]);
 
+  // fetchIncidents usa una ref para acceder a los filtros actuales sin
+  // convertirse en dependencia inestable del useEffect de inicialización
+  const filtersRef = useRef(state.filters);
+  useEffect(() => {
+    filtersRef.current = state.filters;
+  }, [state.filters]);
+
   const fetchIncidents = useCallback(() => {
     apiClient.getIncidents({
-      ...state.filters,
-      application: debouncedApp,
+      ...filtersRef.current,
+      application: filtersRef.current.application,
     })
       .then((data) => {
         dispatch({ type: 'SET_INCIDENTS', payload: data });
@@ -42,9 +53,9 @@ export function useLiveMetrics() {
       .catch((err) => {
         console.warn('Operando incidentes en modo local offline:', err);
       });
-  }, [state.filters, debouncedApp, dispatch]);
+  }, [dispatch]);
 
-  // Debounce para la barra de filtros por aplicación
+  // ── Debounce para el filtro de aplicación ───────────────────────────
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedApp(state.filters.application);
@@ -52,7 +63,7 @@ export function useLiveMetrics() {
     return () => clearTimeout(handler);
   }, [state.filters.application]);
 
-  // Ciclo reactivo de filtros y selects automáticos
+  // ── Ciclo reactivo de filtros ────────────────────────────────────────
   useEffect(() => {
     if (!state.backendOnline) return;
     fetchIncidents();
@@ -64,26 +75,34 @@ export function useLiveMetrics() {
     state.filters.limit,
     debouncedApp,
     state.backendOnline,
-    fetchIncidents
+    fetchIncidents,
   ]);
 
-  // Inicialización única: Obtención de Token Dinámico de desarrollo, Carga y WebSockets
   useEffect(() => {
+    let cancelled = false; 
+
     apiClient.getDevToken()
       .then((token) => {
+        if (cancelled) return;
+
+        if (socketRef.current) {
+          socketRef.current.disconnect();
+          socketRef.current = null;
+        }
+
         dispatch({ type: 'SET_BACKEND_STATUS', payload: true });
-        
         fetchMetrics();
         fetchIncidents();
 
-        // Conecta el socket pasando el token JWT real y verificado en la cabecera del handshake
         const socket: Socket = io(API_URL, {
           transports: ['websocket'],
           auth: { token },
           reconnection: true,
-          reconnectionAttempts: Infinity, // Reintenta indefinidamente sin colapsar el editor
+          reconnectionAttempts: Infinity,
           reconnectionDelay: 1000,
         });
+
+        socketRef.current = socket;
 
         socket.on('connect', () => {
           dispatch({ type: 'SET_SOCKET_STATUS', payload: true });
@@ -113,7 +132,11 @@ export function useLiveMetrics() {
           dispatch({ type: 'ADD_ALERT', payload: alert });
           dispatch({
             type: 'ADD_LOG',
-            payload: { time: new Date().toLocaleTimeString(), event: 'alert.created', payload: JSON.stringify(alert, null, 2) },
+            payload: {
+              time: new Date().toLocaleTimeString(),
+              event: 'alert.created',
+              payload: JSON.stringify(alert, null, 2),
+            },
           });
         });
 
@@ -121,7 +144,11 @@ export function useLiveMetrics() {
           dispatch({ type: 'SET_METRICS', payload: metrics });
           dispatch({
             type: 'ADD_LOG',
-            payload: { time: new Date().toLocaleTimeString(), event: 'metrics.updated', payload: JSON.stringify(metrics, null, 2) },
+            payload: {
+              time: new Date().toLocaleTimeString(),
+              event: 'metrics.updated',
+              payload: JSON.stringify(metrics, null, 2),
+            },
           });
         });
 
@@ -129,19 +156,27 @@ export function useLiveMetrics() {
           dispatch({ type: 'UPDATE_INCIDENT', payload: incident });
           dispatch({
             type: 'ADD_LOG',
-            payload: { time: new Date().toLocaleTimeString(), event: 'incident.updated', payload: JSON.stringify(incident, null, 2) },
+            payload: {
+              time: new Date().toLocaleTimeString(),
+              event: 'incident.updated',
+              payload: JSON.stringify(incident, null, 2),
+            },
           });
         });
-
-        return () => {
-          socket.disconnect();
-        };
       })
       .catch((err) => {
         console.warn('La sincronización asíncrona online falló. Operando en modo local.', err);
         dispatch({ type: 'SET_BACKEND_STATUS', payload: false });
       });
-  }, [API_URL, dispatch, fetchMetrics, fetchIncidents]);
+
+    return () => {
+      cancelled = true;
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
+  }, []); 
 
   return { fetchMetrics, fetchIncidents };
 }
