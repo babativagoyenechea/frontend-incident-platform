@@ -69,30 +69,43 @@ export const Dashboard: React.FC = () => {
               <p className="text-xs text-slate-300 font-extrabold tracking-widest uppercase">TI Telemetría</p>
             </div>
           </div>
+
+          {/* Navegación principal */}
+          <div className="space-y-1">
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Módulos</span>
+            <div className="flex items-center gap-2.5 px-3 py-2.5 bg-blue-600/20 border border-blue-500/30 rounded-lg">
+              <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0"></span>
+              <span className="text-xs font-bold text-blue-300">Dashboard operacional</span>
+            </div>
+          </div>
+
+          {/* Estado de conexiones */}
           <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 space-y-3.5">
-            <span className="text-xs font-black text-slate-300 uppercase tracking-widest block">Servidores Físicos</span>
-            <div className="flex items-center justify-between text-xs md:text-sm">
-              <span className="text-slate-300 font-semibold">Servidor REST:</span>
-              <span className={`font-black ${state.backendOnline ? 'text-emerald-400' : 'text-red-400'}`}>
-                {state.backendOnline ? 'ONLINE' : 'OFFLINE'}
+            <span className="text-xs font-black text-slate-300 uppercase tracking-widest block">Estado del Sistema</span>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-slate-400 font-semibold">API REST</span>
+              <span className={`font-black flex items-center gap-1.5 ${state.backendOnline ? 'text-emerald-400' : 'text-red-400'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${state.backendOnline ? 'bg-emerald-400' : 'bg-red-400'}`}></span>
+                {state.backendOnline ? 'Online' : 'Offline'}
               </span>
             </div>
-            <div className="flex items-center justify-between text-xs md:text-sm">
-              <span className="text-slate-300 font-semibold">Canal Sockets:</span>
-              <span className={`font-black ${state.socketConnected ? 'text-emerald-400' : 'text-amber-400'}`}>
-                {state.socketConnected ? 'CONECTADO' : 'SIMULATION'}
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-slate-400 font-semibold">WebSocket</span>
+              <span className={`font-black flex items-center gap-1.5 ${state.socketConnected ? 'text-emerald-400' : 'text-amber-400'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${state.socketConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></span>
+                {state.socketConnected ? 'Activo' : 'Simulación'}
               </span>
             </div>
           </div>
         </div>
-        <div className="text-xs text-slate-400 font-mono text-center font-bold">v5.0 — Control de Red</div>
+        <div className="text-[10px] text-slate-600 font-mono text-center">Coordinadora © 2026</div>
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
         <header className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-md font-bold text-slate-900 tracking-tight">Centro de Mandos y Diagnóstico</h2>
-            <p className="text-xs text-slate-600 font-semibold">Control transaccional PostgreSQL e ingesta MongoDB</p>
+            <p className="text-xs text-slate-500">Monitoreo operacional en tiempo real</p>
           </div>
         </header>
 
@@ -106,7 +119,7 @@ export const Dashboard: React.FC = () => {
 
           <SummaryWidgets metrics={state.metrics} isLoading={state.isLoading} />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm lg:col-span-2 space-y-4">
               <div className="flex border-b border-slate-200 pb-3 gap-4">
                 <button
@@ -146,7 +159,9 @@ export const Dashboard: React.FC = () => {
               )}
             </div>
 
-            <SocketsConsole logs={state.logs} />
+            <div className="lg:col-span-3">
+              <SocketsConsole logs={state.logs} />
+            </div>
           </div>
 
           <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 space-y-4">
