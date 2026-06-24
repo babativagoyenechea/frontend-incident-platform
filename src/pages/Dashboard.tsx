@@ -16,13 +16,12 @@ export const Dashboard: React.FC = () => {
   const { state, dispatch } = context;
 
   const [activeFormTab, setActiveTab] = useState<'event' | 'incident'>('event');
-
   const [incidentForm, setIncidentForm] = useState({
     title: 'Sobrecarga masiva en pasarela',
     description: 'Fallo de timeout en base de datos de facturación.',
     affectedApp: 'billing-service',
     severity: 'CRITICAL',
-    assignee: 'ingeniero.soporte@coordinadora.com',
+    assignee: '',
     relatedEventTraceIds: ''
   });
 
@@ -42,12 +41,24 @@ export const Dashboard: React.FC = () => {
         fetchMetrics();
         fetchIncidents();
       } else {
-        const transitions: Record<string, string[]> = { OPEN: ['IN_PROGRESS'], IN_PROGRESS: ['RESOLVED', 'OPEN'], RESOLVED: [] };
+        // Lógica de simulación offline
+        const transitions: Record<string, string[]> = {
+          OPEN: ['IN_PROGRESS'],
+          IN_PROGRESS: ['RESOLVED', 'OPEN'],
+          RESOLVED: []
+        };
+
         if (transitions[incident.status]?.includes(nextStatus)) {
           dispatch({ type: 'SET_ERROR', payload: null });
-          dispatch({ type: 'UPDATE_INCIDENT', payload: { ...incident, status: nextStatus, updatedAt: new Date().toISOString() } });
+          dispatch({ 
+            type: 'UPDATE_INCIDENT', 
+            payload: { ...incident, status: nextStatus, updatedAt: new Date().toISOString() } 
+          });
         } else {
-          dispatch({ type: 'SET_ERROR', payload: `Error 409 Conflict: Transición de ${incident.status} a ${nextStatus} prohibida.` });
+          dispatch({ 
+            type: 'SET_ERROR', 
+            payload: `Error 409 Conflict: Transición de ${incident.status} a ${nextStatus} prohibida.` 
+          });
         }
       }
     } catch (err: any) {
@@ -59,7 +70,6 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col md:flex-row antialiased">
-      {/* OPTIMIZACIÓN CONTRASTE: Barra lateral con textos secundarios más contrastados */}
       <aside className="w-full md:w-64 bg-[#0b1329] text-slate-200 p-5 flex flex-col justify-between border-r border-slate-900 shadow-xl shrink-0">
         <div className="space-y-6">
           <div className="flex items-center gap-3 border-b border-slate-800/80 pb-5">
@@ -69,8 +79,6 @@ export const Dashboard: React.FC = () => {
               <p className="text-xs text-slate-300 font-extrabold tracking-widest uppercase">TI Telemetría</p>
             </div>
           </div>
-
-          {/* Navegación principal */}
           <div className="space-y-1">
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Módulos</span>
             <div className="flex items-center gap-2.5 px-3 py-2.5 bg-blue-600/20 border border-blue-500/30 rounded-lg">
@@ -78,8 +86,6 @@ export const Dashboard: React.FC = () => {
               <span className="text-xs font-bold text-blue-300">Dashboard operacional</span>
             </div>
           </div>
-
-          {/* Estado de conexiones */}
           <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 space-y-3.5">
             <span className="text-xs font-black text-slate-300 uppercase tracking-widest block">Estado del Sistema</span>
             <div className="flex items-center justify-between text-xs">
@@ -143,7 +149,7 @@ export const Dashboard: React.FC = () => {
                   setActiveTab={setActiveTab}
                   setError={(msg) => dispatch({ type: 'SET_ERROR', payload: msg })}
                   setLoading={(l) => dispatch({ type: 'SET_LOADING', payload: l })}
-                  addLog={(log) => dispatch({ type: 'ADD_LOG', payload: log })}
+                  addLog={(log) => dispatch({ type: 'LOG_APPENDED', payload: log })}
                 />
               ) : (
                 <IncidentForm
@@ -152,7 +158,7 @@ export const Dashboard: React.FC = () => {
                   setForm={setIncidentForm}
                   setError={(msg) => dispatch({ type: 'SET_ERROR', payload: msg })}
                   setLoading={(l) => dispatch({ type: 'SET_LOADING', payload: l })}
-                  addIncidentLocal={(inc) => dispatch({ type: 'ADD_INCIDENT_LOCAL', payload: inc })}
+                  addIncidentLocal={(inc) => dispatch({ type: 'INCIDENT_ADDED', payload: inc })}
                   fetchMetrics={fetchMetrics}
                   fetchIncidents={fetchIncidents}
                 />
@@ -170,7 +176,6 @@ export const Dashboard: React.FC = () => {
                 <h3 className="text-xs font-bold text-slate-900 uppercase">Grilla de Incidentes (PostgreSQL)</h3>
                 <p className="text-xs text-slate-600 font-semibold mt-1">Transiciones con consistencia ACID aplicadas en tiempo real</p>
               </div>
-
               <IncidentFilters filters={state.filters} setFilters={setFilters} />
             </div>
 

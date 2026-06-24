@@ -20,17 +20,20 @@ export interface State {
 }
 
 export type Action =
-  | { type: 'SET_METRICS'; payload: DashboardMetrics }
+  | { type: 'METRICS_UPDATED'; payload: DashboardMetrics }
   | { type: 'ADD_ALERT'; payload: Alert }
-  | { type: 'SET_INCIDENTS'; payload: PaginatedResult<Incident> }
+  | { type: 'INCIDENTS_LOADED'; payload: PaginatedResult<Incident> }
   | { type: 'UPDATE_INCIDENT'; payload: Incident }
-  | { type: 'ADD_INCIDENT_LOCAL'; payload: Incident }
+  | { type: 'INCIDENT_ADDED'; payload: Incident }
   | { type: 'SET_FILTERS'; payload: Partial<State['filters']> }
   | { type: 'SET_BACKEND_STATUS'; payload: boolean }
   | { type: 'SET_SOCKET_STATUS'; payload: boolean }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'ADD_LOG'; payload: Log };
+  | { type: 'LOG_APPENDED'; payload: Log };
+
+// aliases para compatibilidad con tests existentes
+export type { Action as DashboardAction };
 
 export const initialState: State = {
   metrics: null,
@@ -50,7 +53,7 @@ export const DashboardContext = createContext<{
 
 export function dashboardReducer(state: State, action: Action): State {
   switch (action.type) {
-    case 'SET_METRICS':
+    case 'METRICS_UPDATED':
       return { ...state, metrics: action.payload };
     case 'ADD_ALERT':
       if (!state.metrics) return state;
@@ -61,7 +64,7 @@ export function dashboardReducer(state: State, action: Action): State {
           recentAlerts: [action.payload, ...state.metrics.recentAlerts.slice(0, 9)],
         },
       };
-    case 'SET_INCIDENTS':
+    case 'INCIDENTS_LOADED':
       return { ...state, incidents: action.payload };
     case 'UPDATE_INCIDENT':
       if (!state.incidents) return state;
@@ -74,7 +77,7 @@ export function dashboardReducer(state: State, action: Action): State {
           ),
         },
       };
-    case 'ADD_INCIDENT_LOCAL':
+    case 'INCIDENT_ADDED':
       if (!state.incidents) {
         return {
           ...state,
@@ -99,7 +102,7 @@ export function dashboardReducer(state: State, action: Action): State {
       return { ...state, isLoading: action.payload };
     case 'SET_ERROR':
       return { ...state, error: action.payload };
-    case 'ADD_LOG':
+    case 'LOG_APPENDED':
       return { ...state, logs: [action.payload, ...state.logs.slice(0, 29)] };
     default:
       return state;
@@ -108,6 +111,7 @@ export function dashboardReducer(state: State, action: Action): State {
 
 export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(dashboardReducer, initialState);
+
   return (
     <DashboardContext.Provider value={{ state, dispatch }}>
       {children}

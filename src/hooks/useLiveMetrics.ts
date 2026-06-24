@@ -10,33 +10,29 @@ export function useLiveMetrics() {
   const { state, dispatch } = context;
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
   const [debouncedApp, setDebouncedApp] = useState(state.filters.application);
-
-  // ── Ref para guardar el socket: no dispara re-renders y sobrevive al
-  //    doble montaje de React.StrictMode en desarrollo ──────────────────
+  
+  // ref para el socket: sobrevive al doble montaje de React.StrictMode sin duplicar conexiones
   const socketRef = useRef<Socket | null>(null);
 
   const fetchMetrics = useCallback(() => {
     dispatch({ type: 'SET_LOADING', payload: true });
     apiClient.getMetrics()
       .then((data) => {
-        dispatch({ type: 'SET_METRICS', payload: data });
+        dispatch({ type: 'METRICS_UPDATED', payload: data });
         dispatch({ type: 'SET_BACKEND_STATUS', payload: true });
         dispatch({ type: 'SET_ERROR', payload: null });
       })
       .catch((err) => {
         console.warn('Backend offline, operando en modo simulador local:', err);
         dispatch({ type: 'SET_BACKEND_STATUS', payload: false });
-        dispatch({ type: 'SET_ERROR', payload: 'La conexión con el backend de NestJS ha fallado.' });
+        dispatch({ type: 'SET_ERROR', payload: 'La conexión con el backend ha fallado.' });
       })
       .finally(() => {
         dispatch({ type: 'SET_LOADING', payload: false });
       });
   }, [dispatch]);
 
-  // fetchIncidents usa una ref para acceder a los filtros actuales sin
-  // convertirse en dependencia inestable del useEffect de inicialización
   const filtersRef = useRef(state.filters);
   useEffect(() => {
     filtersRef.current = state.filters;
@@ -48,14 +44,14 @@ export function useLiveMetrics() {
       application: filtersRef.current.application,
     })
       .then((data) => {
-        dispatch({ type: 'SET_INCIDENTS', payload: data });
+        dispatch({ type: 'INCIDENTS_LOADED', payload: data });
       })
       .catch((err) => {
         console.warn('Operando incidentes en modo local offline:', err);
       });
   }, [dispatch]);
 
-  // ── Debounce para el filtro de aplicación ───────────────────────────
+  // debounce para el filtro de aplicación (400ms)
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedApp(state.filters.application);
@@ -63,7 +59,6 @@ export function useLiveMetrics() {
     return () => clearTimeout(handler);
   }, [state.filters.application]);
 
-  // ── Ciclo reactivo de filtros ────────────────────────────────────────
   useEffect(() => {
     if (!state.backendOnline) return;
     fetchIncidents();
@@ -79,7 +74,7 @@ export function useLiveMetrics() {
   ]);
 
   useEffect(() => {
-    let cancelled = false; 
+    let cancelled = false;
 
     apiClient.getDevToken()
       .then((token) => {
@@ -107,7 +102,7 @@ export function useLiveMetrics() {
         socket.on('connect', () => {
           dispatch({ type: 'SET_SOCKET_STATUS', payload: true });
           dispatch({
-            type: 'ADD_LOG',
+            type: 'LOG_APPENDED',
             payload: {
               time: new Date().toLocaleTimeString(),
               event: 'SOCKET_CONNECTED',
@@ -119,7 +114,7 @@ export function useLiveMetrics() {
         socket.on('disconnect', () => {
           dispatch({ type: 'SET_SOCKET_STATUS', payload: false });
           dispatch({
-            type: 'ADD_LOG',
+            type: 'LOG_APPENDED',
             payload: {
               time: new Date().toLocaleTimeString(),
               event: 'SOCKET_DISCONNECTED',
@@ -131,7 +126,7 @@ export function useLiveMetrics() {
         socket.on('alert.created', (alert) => {
           dispatch({ type: 'ADD_ALERT', payload: alert });
           dispatch({
-            type: 'ADD_LOG',
+            type: 'LOG_APPENDED',
             payload: {
               time: new Date().toLocaleTimeString(),
               event: 'alert.created',
@@ -141,9 +136,9 @@ export function useLiveMetrics() {
         });
 
         socket.on('metrics.updated', (metrics) => {
-          dispatch({ type: 'SET_METRICS', payload: metrics });
+          dispatch({ type: 'METRICS_UPDATED', payload: metrics });
           dispatch({
-            type: 'ADD_LOG',
+            type: 'LOG_APPENDED',
             payload: {
               time: new Date().toLocaleTimeString(),
               event: 'metrics.updated',
@@ -155,7 +150,7 @@ export function useLiveMetrics() {
         socket.on('incident.updated', (incident) => {
           dispatch({ type: 'UPDATE_INCIDENT', payload: incident });
           dispatch({
-            type: 'ADD_LOG',
+            type: 'LOG_APPENDED',
             payload: {
               time: new Date().toLocaleTimeString(),
               event: 'incident.updated',
@@ -165,7 +160,7 @@ export function useLiveMetrics() {
         });
       })
       .catch((err) => {
-        console.warn('La sincronización asíncrona online falló. Operando en modo local.', err);
+        console.warn('Sync online fallida. Operando en modo local.', err);
         dispatch({ type: 'SET_BACKEND_STATUS', payload: false });
       });
 
@@ -176,7 +171,7 @@ export function useLiveMetrics() {
         socketRef.current = null;
       }
     };
-  }, []); 
+  }, []);
 
   return { fetchMetrics, fetchIncidents };
 }
