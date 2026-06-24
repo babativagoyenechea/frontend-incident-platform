@@ -52,6 +52,9 @@ const mockPaginated: PaginatedResult<Incident> = {
   totalPages: 1,
 };
 
+// =============================================================================
+// 1. dashboardReducer
+// =============================================================================
 describe('dashboardReducer — Estado global', () => {
 
   it('retorna el estado inicial sin mutaciones cuando recibe una acción desconocida', () => {
@@ -59,15 +62,14 @@ describe('dashboardReducer — Estado global', () => {
     expect(result).toEqual(initialState);
   });
 
-  it('SET_METRICS reemplaza las métricas completas en el estado', () => {
-    const action: Action = { type: 'SET_METRICS', payload: mockMetrics };
+  it('METRICS_UPDATED reemplaza las métricas completas en el estado', () => {
+    const action: Action = { type: 'METRICS_UPDATED', payload: mockMetrics };
     const next = dashboardReducer(initialState, action);
     expect(next.metrics?.openIncidents).toBe(3);
     expect(next.metrics?.resolvedIncidents).toBe(7);
   });
 
   it('ADD_ALERT antepone la nueva alerta y conserva un máximo de 10 en la lista', () => {
-    // Estado previo con métricas cargadas y 10 alertas ya existentes
     const tenAlerts = Array.from({ length: 10 }, (_, i) => ({
       id: `alert-${i}`,
       sourceTraceId:       `tr-${i}`,
@@ -109,16 +111,16 @@ describe('dashboardReducer — Estado global', () => {
     expect(next.incidents!.data[0].status).toBe('IN_PROGRESS');
   });
 
-  it('ADD_INCIDENT_LOCAL inicializa la lista cuando incidents es null', () => {
-    const next = dashboardReducer(initialState, { type: 'ADD_INCIDENT_LOCAL', payload: mockIncident });
+  it('INCIDENT_ADDED inicializa la lista cuando incidents es null', () => {
+    const next = dashboardReducer(initialState, { type: 'INCIDENT_ADDED', payload: mockIncident });
     expect(next.incidents!.data).toHaveLength(1);
     expect(next.incidents!.total).toBe(1);
   });
 
-  it('ADD_INCIDENT_LOCAL incrementa el total cuando ya existen incidentes', () => {
+  it('INCIDENT_ADDED incrementa el total cuando ya existen incidentes', () => {
     const stateWithIncidents: State = { ...initialState, incidents: mockPaginated };
     const anotherIncident: Incident = { ...mockIncident, id: 'uuid-002' };
-    const next = dashboardReducer(stateWithIncidents, { type: 'ADD_INCIDENT_LOCAL', payload: anotherIncident });
+    const next = dashboardReducer(stateWithIncidents, { type: 'INCIDENT_ADDED', payload: anotherIncident });
     expect(next.incidents!.data).toHaveLength(2);
     expect(next.incidents!.total).toBe(2);
   });
@@ -130,16 +132,15 @@ describe('dashboardReducer — Estado global', () => {
     });
     expect(next.filters.status).toBe('RESOLVED');
     expect(next.filters.page).toBe(3);
-    // Campos no enviados se conservan con su valor original
     expect(next.filters.severity).toBe('');
     expect(next.filters.limit).toBe(10);
   });
 
-  it('ADD_LOG mantiene el buffer limitado a 30 entradas y pone el más reciente primero', () => {
+  it('LOG_APPENDED mantiene el buffer limitado a 30 entradas y pone el más reciente primero', () => {
     let state = initialState;
     for (let i = 1; i <= 35; i++) {
       state = dashboardReducer(state, {
-        type: 'ADD_LOG',
+        type: 'LOG_APPENDED',
         payload: { time: '12:00', event: 'WS_EVENT', payload: `msg-${i}` },
       });
     }
@@ -153,7 +154,7 @@ describe('dashboardReducer — Estado global', () => {
 
     const s2 = dashboardReducer(s1, { type: 'SET_ERROR', payload: 'Fallo de red' });
     expect(s2.error).toBe('Fallo de red');
-    expect(s2.isLoading).toBe(true); // no debe haber sido tocado
+    expect(s2.isLoading).toBe(true);
   });
 
   it('SET_BACKEND_STATUS y SET_SOCKET_STATUS son independientes entre sí', () => {
@@ -165,13 +166,12 @@ describe('dashboardReducer — Estado global', () => {
 });
 
 // =============================================================================
-// 2. SummaryWidgets — Renderizado de métricas (HU4)
+// 2. SummaryWidgets
 // =============================================================================
 describe('SummaryWidgets — Métricas del dashboard', () => {
 
   it('muestra ceros cuando metrics es null', () => {
     render(<SummaryWidgets metrics={null} isLoading={false} />);
-    // Todos los contadores deben mostrar 0 por defecto
     const zeros = screen.getAllByText('0');
     expect(zeros.length).toBeGreaterThanOrEqual(3);
   });
@@ -184,7 +184,6 @@ describe('SummaryWidgets — Métricas del dashboard', () => {
 
   it('muestra el número de nodos activos basado en eventsByApp', () => {
     render(<SummaryWidgets metrics={mockMetrics} isLoading={false} />);
-    // mockMetrics tiene 1 entrada en eventsByApp → 1 nodo activo
     expect(screen.getByText('1')).toBeInTheDocument();
   });
 
@@ -195,13 +194,12 @@ describe('SummaryWidgets — Métricas del dashboard', () => {
 
   it('muestra la hora de caché formateada cuando metrics tiene cachedAt', () => {
     render(<SummaryWidgets metrics={mockMetrics} isLoading={false} />);
-    // Debe mostrar una hora formateada, no el string ISO
     expect(screen.queryByText('N/A')).not.toBeInTheDocument();
   });
 });
 
 // =============================================================================
-// 3. IncidentTable — Tabla de incidentes con transiciones (HU2)
+// 3. IncidentTable
 // =============================================================================
 describe('IncidentTable — Tabla de incidentes', () => {
 
@@ -219,7 +217,6 @@ describe('IncidentTable — Tabla de incidentes', () => {
   });
 
   it('deshabilita el botón del estado actual del incidente', () => {
-    // El incidente está en OPEN → el botón OPEN debe estar disabled
     render(
       <IncidentTable
         incidents={mockPaginated}
@@ -229,7 +226,6 @@ describe('IncidentTable — Tabla de incidentes', () => {
       />
     );
     const openButtons = screen.getAllByRole('button', { name: 'OPEN' });
-    // El botón de la fila (no el badge de estado) debe estar deshabilitado
     const transitionBtn = openButtons.find(btn => btn.hasAttribute('disabled'));
     expect(transitionBtn).toBeDefined();
   });
@@ -277,7 +273,7 @@ describe('IncidentTable — Tabla de incidentes', () => {
 });
 
 // =============================================================================
-// 4. EventForm — Integración de envío de eventos (HU1)
+// 4. EventForm
 // =============================================================================
 describe('EventForm — Formulario de registro de eventos', () => {
 
@@ -326,7 +322,7 @@ describe('EventForm — Formulario de registro de eventos', () => {
     });
   });
 
-  it('en modo offline (backendOnline=false) usa addLog en lugar de llamar a la API', async () => {
+  it('en modo offline usa addLog en lugar de llamar a la API', async () => {
     render(<EventForm {...defaultProps} backendOnline={false} />);
     fireEvent.submit(screen.getByTestId('event-form'));
 
@@ -339,7 +335,7 @@ describe('EventForm — Formulario de registro de eventos', () => {
 });
 
 // =============================================================================
-// 5. IncidentForm — Integración de creación de incidentes (HU2)
+// 5. IncidentForm
 // =============================================================================
 describe('IncidentForm — Formulario de incidentes', () => {
 
@@ -353,15 +349,15 @@ describe('IncidentForm — Formulario de incidentes', () => {
   };
 
   const defaultProps = {
-    backendOnline:    true,
-    form:             defaultForm,
-    setForm:          vi.fn(),
-    setError:         vi.fn(),
-    setLoading:       vi.fn(),
-    addIncidentLocal: vi.fn(),
-    fetchMetrics:     vi.fn(),
-    fetchIncidents:   vi.fn(),
-    onSuccess:        vi.fn(),
+    backendOnline:      true,
+    form:               defaultForm,
+    setForm:            vi.fn(),
+    setError:           vi.fn(),
+    setLoading:         vi.fn(),
+    addIncidentLocal:   vi.fn(),
+    fetchMetrics:       vi.fn(),
+    fetchIncidents:     vi.fn(),
+    onSuccess:          vi.fn(),
     prefilledFromEvent: false,
     onDismissPrefilled: vi.fn(),
   };
@@ -383,11 +379,11 @@ describe('IncidentForm — Formulario de incidentes', () => {
 
     await waitFor(() => {
       expect(apiClient.createIncident).toHaveBeenCalledWith({
-        title:               'Timeout en checkout',
-        description:         'Los usuarios no pueden completar el pago',
-        affectedApplication: 'payment-service',
-        severity:            'CRITICAL',
-        assignee:            'ops@empresa.com',
+        title:                'Timeout en checkout',
+        description:          'Los usuarios no pueden completar el pago',
+        affectedApplication:  'payment-service',
+        severity:             'CRITICAL',
+        assignee:             'ops@empresa.com',
         relatedEventTraceIds: ['trace-abc', 'trace-def'],
       });
     });

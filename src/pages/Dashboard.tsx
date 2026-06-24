@@ -41,7 +41,6 @@ export const Dashboard: React.FC = () => {
         fetchMetrics();
         fetchIncidents();
       } else {
-        // Lógica de simulación offline
         const transitions: Record<string, string[]> = {
           OPEN: ['IN_PROGRESS'],
           IN_PROGRESS: ['RESOLVED', 'OPEN'],
@@ -50,19 +49,12 @@ export const Dashboard: React.FC = () => {
 
         if (transitions[incident.status]?.includes(nextStatus)) {
           dispatch({ type: 'SET_ERROR', payload: null });
-          dispatch({ 
-            type: 'UPDATE_INCIDENT', 
-            payload: { ...incident, status: nextStatus, updatedAt: new Date().toISOString() } 
+          dispatch({
+            type: 'UPDATE_INCIDENT',
+            payload: { ...incident, status: nextStatus, updatedAt: new Date().toISOString() }
           });
         } else {
-<<<<<<< Updated upstream
-          dispatch({ 
-            type: 'SET_ERROR', 
-            payload: `Error 409 Conflict: Transición de ${incident.status} a ${nextStatus} prohibida.` 
-          });
-=======
           dispatch({ type: 'SET_ERROR', payload: `Transición de ${incident.status} a ${nextStatus} no permitida.` });
->>>>>>> Stashed changes
         }
       }
     } catch (err: any) {
@@ -83,10 +75,7 @@ export const Dashboard: React.FC = () => {
               <p className="text-xs text-slate-300 font-extrabold tracking-widest uppercase">TI Telemetría</p>
             </div>
           </div>
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
           <div className="space-y-1">
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Módulos</span>
             <div className="flex items-center gap-2.5 px-3 py-2.5 bg-blue-600/20 border border-blue-500/30 rounded-lg">
@@ -94,10 +83,7 @@ export const Dashboard: React.FC = () => {
               <span className="text-xs font-bold text-blue-300">Dashboard operacional</span>
             </div>
           </div>
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
           <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 space-y-3.5">
             <span className="text-xs font-black text-slate-300 uppercase tracking-widest block">Estado del sistema</span>
             <div className="flex items-center justify-between text-xs">
@@ -144,10 +130,7 @@ export const Dashboard: React.FC = () => {
                   onClick={() => setActiveTab('event')}
                   className={`text-xs font-bold uppercase tracking-wider pb-2 border-b-2 transition ${activeFormTab === 'event' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
                 >
-<<<<<<< Updated upstream
-=======
                   Registrar evento
->>>>>>> Stashed changes
                 </button>
                 <button
                   onClick={() => setActiveTab('incident')}
