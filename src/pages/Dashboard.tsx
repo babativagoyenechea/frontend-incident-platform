@@ -55,10 +55,14 @@ export const Dashboard: React.FC = () => {
             payload: { ...incident, status: nextStatus, updatedAt: new Date().toISOString() } 
           });
         } else {
+<<<<<<< Updated upstream
           dispatch({ 
             type: 'SET_ERROR', 
             payload: `Error 409 Conflict: Transición de ${incident.status} a ${nextStatus} prohibida.` 
           });
+=======
+          dispatch({ type: 'SET_ERROR', payload: `Transición de ${incident.status} a ${nextStatus} no permitida.` });
+>>>>>>> Stashed changes
         }
       }
     } catch (err: any) {
@@ -79,6 +83,10 @@ export const Dashboard: React.FC = () => {
               <p className="text-xs text-slate-300 font-extrabold tracking-widest uppercase">TI Telemetría</p>
             </div>
           </div>
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
           <div className="space-y-1">
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Módulos</span>
             <div className="flex items-center gap-2.5 px-3 py-2.5 bg-blue-600/20 border border-blue-500/30 rounded-lg">
@@ -86,8 +94,12 @@ export const Dashboard: React.FC = () => {
               <span className="text-xs font-bold text-blue-300">Dashboard operacional</span>
             </div>
           </div>
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
           <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 space-y-3.5">
-            <span className="text-xs font-black text-slate-300 uppercase tracking-widest block">Estado del Sistema</span>
+            <span className="text-xs font-black text-slate-300 uppercase tracking-widest block">Estado del sistema</span>
             <div className="flex items-center justify-between text-xs">
               <span className="text-slate-400 font-semibold">API REST</span>
               <span className={`font-black flex items-center gap-1.5 ${state.backendOnline ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -110,8 +122,8 @@ export const Dashboard: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-md font-bold text-slate-900 tracking-tight">Centro de Mandos y Diagnóstico</h2>
-            <p className="text-xs text-slate-500">Monitoreo operacional en tiempo real</p>
+            <h2 className="text-md font-bold text-slate-900 tracking-tight">Panel de operaciones</h2>
+            <p className="text-xs text-slate-500">Monitoreo en tiempo real</p>
           </div>
         </header>
 
@@ -132,12 +144,16 @@ export const Dashboard: React.FC = () => {
                   onClick={() => setActiveTab('event')}
                   className={`text-xs font-bold uppercase tracking-wider pb-2 border-b-2 transition ${activeFormTab === 'event' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
                 >
+<<<<<<< Updated upstream
+=======
+                  Registrar evento
+>>>>>>> Stashed changes
                 </button>
                 <button
                   onClick={() => setActiveTab('incident')}
                   className={`text-xs font-bold uppercase tracking-wider pb-2 border-b-2 transition ${activeFormTab === 'incident' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
                 >
-                  2. Registro Incidente (HU2 Postgres)
+                  Crear incidente
                 </button>
               </div>
 
@@ -172,8 +188,8 @@ export const Dashboard: React.FC = () => {
           <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
               <div>
-                <h3 className="text-xs font-bold text-slate-900 uppercase">Grilla de Incidentes (PostgreSQL)</h3>
-                <p className="text-xs text-slate-600 font-semibold mt-1">Transiciones con consistencia ACID aplicadas en tiempo real</p>
+                <h3 className="text-xs font-bold text-slate-900 uppercase">Incidentes</h3>
+                <p className="text-xs text-slate-500 mt-1">Gestión de estado y seguimiento</p>
               </div>
               <IncidentFilters filters={state.filters} setFilters={setFilters} />
             </div>
