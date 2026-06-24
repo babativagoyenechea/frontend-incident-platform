@@ -13,7 +13,6 @@ interface IncidentFormProps {
   fetchIncidents: () => void;
 }
 
-// ─── Toast interno del formulario ─────────────────────────────────────────
 interface InlineToast {
   type: 'success' | 'error';
   title: string;
@@ -41,7 +40,6 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ── Validación ──────────────────────────────────────────────────────────
   const validate = () => {
     const e: Record<string, string> = {};
     if (!form.title?.trim())       e.title       = 'El título es obligatorio';
@@ -52,13 +50,11 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
     return Object.keys(e).length === 0;
   };
 
-  // ── Toast helper ────────────────────────────────────────────────────────
   const showToast = (t: InlineToast) => {
     setToast(t);
     setTimeout(() => setToast(null), 6000);
   };
 
-  // ── Submit ──────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate() || isSubmitting) return;
@@ -139,7 +135,6 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
     }
   };
 
-  // ── Clases de campo ─────────────────────────────────────────────────────
   const fieldClass = (key: string) =>
     `w-full bg-slate-50 border text-sm rounded-lg px-3 py-2 transition focus:outline-none focus:ring-2 ${
       fieldErrors[key]

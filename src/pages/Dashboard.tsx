@@ -132,7 +132,6 @@ export const Dashboard: React.FC = () => {
                   onClick={() => setActiveTab('event')}
                   className={`text-xs font-bold uppercase tracking-wider pb-2 border-b-2 transition ${activeFormTab === 'event' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
                 >
-                  1. Ingesta Eventos (HU1 MongoDB)
                 </button>
                 <button
                   onClick={() => setActiveTab('incident')}

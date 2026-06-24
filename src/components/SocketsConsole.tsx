@@ -5,7 +5,6 @@ interface SocketsConsoleProps {
   logs: Log[];
 }
 
-// ─── Configuración visual por tipo de evento ───────────────────────────────
 const EVENT_CONFIG: Record<string, {
   badge: string;        // clases del badge de evento
   rowEven: string;      // fondo fila par
@@ -75,7 +74,6 @@ const DEFAULT_CONFIG = {
 
 const getConfig = (event: string) => EVENT_CONFIG[event] ?? DEFAULT_CONFIG;
 
-// ─── Componente principal ──────────────────────────────────────────────────
 export const SocketsConsole: React.FC<SocketsConsoleProps> = ({ logs }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
