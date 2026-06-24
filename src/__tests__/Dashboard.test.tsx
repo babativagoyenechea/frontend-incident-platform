@@ -11,7 +11,6 @@ import { IncidentForm } from '../components/IncidentForm';
 import type { DashboardMetrics, Incident, PaginatedResult } from '../shared/types';
 import { apiClient } from '../shared/api';
 
-// ─── Mock global del cliente HTTP ────────────────────────────────────────────
 vi.mock('../shared/api', () => ({
   apiClient: {
     createEvent:        vi.fn(),
@@ -23,7 +22,6 @@ vi.mock('../shared/api', () => ({
   },
 }));
 
-// ─── Fixtures reutilizables ───────────────────────────────────────────────────
 const mockMetrics: DashboardMetrics = {
   openIncidents:     3,
   resolvedIncidents: 7,
@@ -54,9 +52,6 @@ const mockPaginated: PaginatedResult<Incident> = {
   totalPages: 1,
 };
 
-// =============================================================================
-// 1. REDUCER — Lógica de estado pura (sin renderizado)
-// =============================================================================
 describe('dashboardReducer — Estado global', () => {
 
   it('retorna el estado inicial sin mutaciones cuando recibe una acción desconocida', () => {

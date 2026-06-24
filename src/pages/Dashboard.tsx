@@ -59,7 +59,6 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col md:flex-row antialiased">
-      {/* OPTIMIZACIÓN CONTRASTE: Barra lateral con textos secundarios más contrastados */}
       <aside className="w-full md:w-64 bg-[#0b1329] text-slate-200 p-5 flex flex-col justify-between border-r border-slate-900 shadow-xl shrink-0">
         <div className="space-y-6">
           <div className="flex items-center gap-3 border-b border-slate-800/80 pb-5">
@@ -126,7 +125,6 @@ export const Dashboard: React.FC = () => {
                   onClick={() => setActiveTab('event')}
                   className={`text-xs font-bold uppercase tracking-wider pb-2 border-b-2 transition ${activeFormTab === 'event' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
                 >
-                  1. Ingesta Eventos (HU1 MongoDB)
                 </button>
                 <button
                   onClick={() => setActiveTab('incident')}

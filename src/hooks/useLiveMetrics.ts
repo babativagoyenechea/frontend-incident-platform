@@ -12,9 +12,7 @@ export function useLiveMetrics() {
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   const [debouncedApp, setDebouncedApp] = useState(state.filters.application);
-
-  // ── Ref para guardar el socket: no dispara re-renders y sobrevive al
-  //    doble montaje de React.StrictMode en desarrollo ──────────────────
+  
   const socketRef = useRef<Socket | null>(null);
 
   const fetchMetrics = useCallback(() => {
@@ -55,7 +53,6 @@ export function useLiveMetrics() {
       });
   }, [dispatch]);
 
-  // ── Debounce para el filtro de aplicación ───────────────────────────
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedApp(state.filters.application);
@@ -63,7 +60,6 @@ export function useLiveMetrics() {
     return () => clearTimeout(handler);
   }, [state.filters.application]);
 
-  // ── Ciclo reactivo de filtros ────────────────────────────────────────
   useEffect(() => {
     if (!state.backendOnline) return;
     fetchIncidents();
